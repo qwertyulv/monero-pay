@@ -62,7 +62,7 @@ The first-run wizard configures:
 - Default invoice pricing mode
 - P2P discovery settings
 
-Configuration can also be adjusted using the supported environment variables. See [README_SETUP.md](README_SETUP.md) and `config.example.json`.
+Configuration can also be adjusted using the supported environment variables. See [README_SETUP.md][(README_SETUP.md)](https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_P2P.md) and `config.example.json`.
 
 ## API
 
