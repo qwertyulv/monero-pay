@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "db_path": "./monero_pay.db",
+  "monero_rpc_url": "http://127.0.0.1:18082",
+  "server_port": ":8080",
+  "worker_interval": "10s",
+  "p2p_enabled": true,
+  "p2p_key_path": "./data/peer.key",
+  "p2p_listen_addr": "",
+  "p2p_bootstrap_peers": [],
+  "monero_primary_address": "",
+  "notes": "Run the binary once from an interactive terminal to create config.json. Sensitive values are encrypted automatically.",
+  "default_pricing_mode": "usd"
+}

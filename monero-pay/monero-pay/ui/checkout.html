@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay with Monero (XMR)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; max-width: 420px; text-align: center; border: 1px solid #334155; }
+        .badge { background: #d97706; color: #fff; padding: 4px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
+        .status-confirmed { background: #16a34a !important; }
+        .status-expired { background: #dc2626 !important; }
+        .amount { font-size: 2rem; font-weight: bold; margin: 1rem 0 0.2rem 0; color: #f59e0b; }
+        .fiat { color: #94a3b8; font-size: 0.95rem; margin-bottom: 1.5rem; }
+        .qr-container { background: white; padding: 12px; border-radius: 8px; width: fit-content; margin: 0 auto 1.5rem auto; display: flex; justify-content: center; align-items: center; }
+        .address-box { background: #0f172a; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.75rem; word-break: break-all; color: #cbd5e1; border: 1px solid #334155; cursor: pointer; }
+        .timer { font-size: 0.85rem; color: #94a3b8; margin-top: 1rem; }
+        .spinner { border: 3px solid rgba(255,255,255,0.1); border-left-color: #f59e0b; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <!-- Load the vendored QR code engine so checkout has no CDN dependency. -->
+    <script src="/static/qrcode.min.js"></script>
+</head>
+<body>
+<div class="card">
+    <span id="status-badge" class="badge">Waiting for Payment</span>
+    <div class="amount" id="xmr-amount">0.0000 XMR</div>
+    <div class="fiat" id="fiat-amount">≈ $0.00 USD</div>
+
+    <div class="qr-container"><div id="qrcode"></div></div>
+
+    <div class="address-box" id="address" onclick="copyAddress()">Loading address...</div>
+    <div class="timer" id="timer-box"><span class="spinner"></span> Expires in <span id="time-remaining">--:--</span></div>
+</div>
+
+<script>
+    const invoiceId = "{{ .InvoiceID }}";
+    let checkInterval;
+
+    function copyAddress() {
+        const addr = document.getElementById('address').innerText;
+        navigator.clipboard.writeText(addr);
+        alert("Address copied to clipboard!");
+    }
+
+    async function fetchStatus() {
+        try {
+            const res = await fetch(`/checkout/api/${invoiceId}`);
+            const data = await res.json();
+
+            document.getElementById('xmr-amount').innerText = data.amount_xmr + " XMR";
+            document.getElementById('fiat-amount').innerText = data.pricing_mode === 'xmr'
+                ? 'Native XMR invoice — no exchange-rate lookup required.'
+                : `≈ $${data.amount_usd.toFixed(2)} USD (Locked @ $${data.rate_usd.toFixed(2)})`;
+            document.getElementById('address').innerText = data.address;
+
+            if (!document.getElementById('qrcode').innerHTML && typeof QRCode !== 'undefined') {
+                new QRCode(document.getElementById('qrcode'), {
+                    text: `monero:${data.address}?tx_amount=${encodeURIComponent(data.amount_xmr)}`,
+                    width: 240,                             // Use a larger QR code for easier camera scanning.
+                    height: 240,                            // Keep the QR code square and large enough for camera scanning.
+                    typeNumber: -1,                         // Let QRCode.js calculate the QR version dynamically for the payload.
+                    correctLevel: QRCode.CorrectLevel.L      // Use lower error correction to keep the module pattern simpler and easier to scan.
+                });
+            }
+
+            const badge = document.getElementById('status-badge');
+            if (data.status === 'confirmed' || data.status === 'late_payment_confirmed') {
+                badge.innerText = data.status === 'late_payment_confirmed' ? "Late Payment Confirmed" : "Payment Confirmed!";
+                badge.className = "badge status-confirmed";
+                document.getElementById('timer-box').innerHTML = "✅ Transaction Complete";
+                clearInterval(checkInterval);
+            } else if (data.status === 'paid_unconfirmed' || data.status === 'late_payment') {
+                badge.innerText = "Payment Detected (In Mempool / Syncing)";
+                badge.className = "badge";
+            } else if (data.status === 'partial_paid') {
+                badge.innerText = `Underpaid (${(data.received_atomic / 1e12).toFixed(4)} XMR received)`;
+                badge.className = "badge status-expired";
+            } else if (data.status === 'expired') {
+                badge.innerText = "Invoice Expired";
+                badge.className = "badge status-expired";
+                document.getElementById('timer-box').innerText = "❌ Payment window expired";
+                clearInterval(checkInterval);
+            } else {
+                const remaining = Math.max(0, Math.floor(data.expires_at - (Date.now() / 1000)));
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                document.getElementById('time-remaining').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    fetchStatus();
+    checkInterval = setInterval(fetchStatus, 3000);
+</script>
+</body>
+</html>

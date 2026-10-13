@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monero Sovereign Dashboard</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: #1e293b; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #334155; }
+        .stat-value { font-size: 1.8rem; font-weight: bold; margin-top: 0.5rem; }
+        .stat-label { font-size: 0.85rem; color: #94a3b8; }
+        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 0.75rem; overflow: hidden; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #334155; font-size: 0.9rem; }
+        th { background: #0f172a; color: #94a3b8; }
+        .btn { background: #f59e0b; color: #000; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; }
+        .key-panel { background: #1e293b; padding: 1rem; border-radius: 0.75rem; border: 1px solid #334155; margin-bottom: 1.5rem; }
+        .key-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .key-input { flex: 1; min-width: 260px; background: #0f172a; color: #f8fafc; border: 1px solid #475569; border-radius: 6px; padding: 9px 12px; font-family: monospace; }
+        .message { color: #94a3b8; margin-top: 8px; min-height: 1.2em; }
+        .error { color: #fca5a5; }
+        a { color: #60a5fa; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Monero Sovereign Dashboard</h1>
+        <button id="quick-invoice-button" onclick="createNewInvoice()" class="btn">+ Quick $10 Invoice</button>
+    </div>
+
+    <div class="key-panel">
+        <strong>Node Session API Key</strong>
+        <p>The key is generated at node startup and expires when the node process stops.</p>
+        <div class="key-row">
+            <input id="api-key" class="key-input" type="password" autocomplete="off" placeholder="Paste the current node session API key">
+            <button onclick="saveApiKey()" class="btn">Connect</button>
+            <button onclick="clearApiKey()" class="btn">Forget</button>
+        </div>
+        <div id="message" class="message"></div>
+    </div>
+
+    <div class="grid">
+        <div class="stat-card">
+            <div class="stat-label">Wallet Balance (Unlocked)</div>
+            <div class="stat-value" id="balance">0.0000 XMR</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Node Height Status</div>
+            <div class="stat-value" id="node-status">Unknown</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Live XMR Rate</div>
+            <div class="stat-value" id="xmr-rate">$0.00</div>
+        </div>
+    </div>
+
+    <h2>Recent Invoices</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Invoice ID</th>
+            <th>Amount / Pricing Mode</th>
+            <th>XMR Target</th>
+            <th>Status</th>
+            <th>Checkout Link</th>
+        </tr>
+        </thead>
+        <tbody id="invoice-rows"></tbody>
+    </table>
+</div>
+
+<script>
+    let defaultPricingMode = "usd";
+
+    function getApiKey() {
+        return sessionStorage.getItem("monero_pay_session_key") || "";
+    }
+
+    function saveApiKey() {
+        const key = document.getElementById("api-key").value.trim();
+        if (!key) {
+            setMessage("Please enter the current session API key.", true);
+            return;
+        }
+        sessionStorage.setItem("monero_pay_session_key", key);
+        document.getElementById("api-key").value = "";
+        setMessage("Session key saved for this browser tab.", false);
+        loadDashboard();
+    }
+
+    function clearApiKey() {
+        sessionStorage.removeItem("monero_pay_session_key");
+        document.getElementById("invoice-rows").innerHTML = "";
+        document.getElementById("api-key").value = "";
+        setMessage("Session key removed.", false);
+    }
+
+    function setMessage(message, isError) {
+        const element = document.getElementById("message");
+        element.innerText = message;
+        element.className = isError ? "message error" : "message";
+    }
+
+    function authHeaders() {
+        const key = getApiKey();
+        return key ? { "Authorization": `Bearer ${key}` } : {};
+    }
+
+    async function loadDashboard() {
+        const key = getApiKey();
+        if (!key) {
+            setMessage("Paste the current session API key shown in the node terminal.", true);
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/dashboard/stats', { headers: authHeaders() });
+            if (res.status === 401) {
+                clearApiKey();
+                setMessage("The session API key is invalid or the node was restarted.", true);
+                return;
+            }
+            if (!res.ok) {
+                throw new Error(`Dashboard request failed with HTTP ${res.status}`);
+            }
+            const data = await res.json();
+
+            document.getElementById('balance').innerText = (data.unlocked_balance / 1e12).toFixed(4) + " XMR";
+            document.getElementById('node-status').innerText = `${data.node_sync.status} (${data.node_sync.daemon_height})`;
+            defaultPricingMode = data.default_pricing_mode === "xmr" ? "xmr" : "usd";
+            document.getElementById('quick-invoice-button').innerText = defaultPricingMode === "xmr"
+                ? "+ Quick 0.05 XMR Invoice"
+                : "+ Quick $10 Invoice";
+            document.getElementById('xmr-rate').innerText = defaultPricingMode === "xmr"
+                ? "Not needed (native XMR)"
+                : (data.xmr_usd_rate > 0 ? "$" + data.xmr_usd_rate.toFixed(2) : "Unavailable");
+
+            const tbody = document.getElementById('invoice-rows');
+            tbody.innerHTML = (data.invoices || []).map(inv => `
+                <tr>
+                    <td><code>${escapeHtml(inv.id)}</code></td>
+                    <td>${inv.pricing_mode === 'xmr' ? 'Native XMR' : '$' + Number(inv.amount_usd).toFixed(2) + ' USD'}</td>
+                    <td>${escapeHtml(inv.amount_xmr)} XMR</td>
+                    <td>${escapeHtml(inv.status)}</td>
+                    <td><a href="/checkout/${encodeURIComponent(inv.id)}" target="_blank">Open Checkout</a></td>
+                </tr>
+            `).join('');
+            setMessage("Connected to the running node.", false);
+        } catch (e) {
+            setMessage(e.message || "Dashboard request failed.", true);
+        }
+    }
+
+    async function createNewInvoice() {
+        const key = getApiKey();
+        if (!key) {
+            setMessage("Enter the current session API key first.", true);
+            return;
+        }
+        try {
+            const res = await fetch('/v1/invoices', {
+                method: 'POST',
+                headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify(defaultPricingMode === "xmr" ? { amount_xmr: 0.05 } : { amount_usd: 10.0 })
+            });
+            if (res.status === 401) {
+                clearApiKey();
+                setMessage("The session API key is invalid or the node was restarted.", true);
+                return;
+            }
+            const data = await res.json();
+            if (!res.ok) {
+                const guidance = [data.error, data.message, data.suggestion].filter(Boolean).join(" ");
+                throw new Error(guidance || `Invoice request failed with HTTP ${res.status}`);
+            }
+            if (data.checkout_url) {
+                window.open(data.checkout_url, '_blank');
+            }
+            loadDashboard();
+        } catch (e) {
+            setMessage(e.message || "Invoice creation failed.", true);
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    const existingKey = getApiKey();
+    if (existingKey) {
+        loadDashboard();
+    }
+    setInterval(loadDashboard, 5000);
+</script>
+</body>
+</html>
