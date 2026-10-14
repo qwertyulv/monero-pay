@@ -1,0 +1,50 @@
+name: Build and Release
+
+# Trigger condition: Only runs when a tag like "v1.0.0" is pushed
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build binaries
+    runs-on: ubuntu-latest
+    
+    # Define a build matrix to automatically compile for Linux, Windows, and macOS
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            name: monero-pay-linux-amd64
+          - os: windows
+            arch: amd64
+            name: monero-pay-windows-amd64.exe
+          - os: darwin # macOS
+            arch: amd64
+            name: monero-pay-darwin-amd64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21' # Replace with your Go version
+
+      - name: Build Binary
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          # Compile command (If Node.js, replace with npm run build / pkg, etc.)
+          go build -o ${{ matrix.name }} ./main.go 
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ matrix.name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
