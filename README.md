@@ -19,7 +19,7 @@ Monero Pay provides invoice management, hosted checkout pages, payment tracking,
 - **P2P discovery foundation:** Signed public offers and peer discovery/relay components.
 - **Cross-platform builds:** Windows, macOS, and Linux releases.
 
-Some P2P transport capabilities are not implemented yet. See [README_P2P.md](README_P2P.md)https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_P2P.md for the current scope and limitations.
+Some P2P transport capabilities are not implemented yet. See [README_P2P.md](https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_P2P.md) for the current scope and limitations.
 
 ## Requirements
 
@@ -62,7 +62,7 @@ The first-run wizard configures:
 - Default invoice pricing mode
 - P2P discovery settings
 
-Configuration can also be adjusted using the supported environment variables. See [README_SETUP.md][(README_SETUP.md)]https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_SETUP.md and `config.example.json`.
+Configuration can also be adjusted using the supported environment variables. See [README_SETUP.md][(README_SETUP.md)](https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_SETUP.md) and `config.example.json`.
 
 ## API
 
@@ -107,11 +107,11 @@ The local encryption of configuration values is not a substitute for secure host
 
 ## Documentation
 
-- [Setup Guide](README_SETUP.md)
-- [Session API Authentication](README_SESSION_API.md)
-- [P2P Architecture and Limitations](README_P2P.md)
-- [Pricing Modes](README_PRICING_MODES.md)
-- [Architecture Overview](ARCHITECTURE.md)
+- [Setup Guide](https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_SETUP.md)
+- [Session API Authentication](https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_SESSION_API.md)
+- [P2P Architecture and Limitations](https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_P2P.md)
+- [Pricing Modes](https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_PRICING_MODES.md)
+- [Architecture Overview](https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/ARCHITECTURE.md)
 
 ## Development
 
