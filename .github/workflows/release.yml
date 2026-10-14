@@ -1,6 +1,6 @@
 name: Build and Release
 
-# Trigger condition: Only runs when a tag like "v1.0.0" is pushed
+# Trigger the workflow only when a tag starting with "v" is pushed
 on:
   push:
     tags:
@@ -11,7 +11,7 @@ jobs:
     name: Build binaries
     runs-on: ubuntu-latest
     
-    # Define a build matrix to automatically compile for Linux, Windows, and macOS
+    # Matrix strategy to build for Linux, Windows, and macOS
     strategy:
       matrix:
         include:
@@ -32,15 +32,15 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21' # Replace with your Go version
+          go-version: '1.21' # Specify the Go version used for building
 
       - name: Build Binary
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
         run: |
-          # Compile command (If Node.js, replace with npm run build / pkg, etc.)
-          go build -o ${{ matrix.name }} ./main.go 
+          # Changed from ./main.go to . to compile the current module
+          go build -o ${{ matrix.name }} . 
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
