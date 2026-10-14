@@ -107,11 +107,11 @@ The local encryption of configuration values is not a substitute for secure host
 
 ## Documentation
 
-- [Setup Guide](README_SETUP.md)https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_SETUP.md
-- [Session API Authentication](README_SESSION_API.md)https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_SESSION_API.md
-- [P2P Architecture and Limitations](README_P2P.md)https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_P2P.md
-- [Pricing Modes](README_PRICING_MODES.md)https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/README_PRICING_MODES.md
-- [Architecture Overview](ARCHITECTURE.md)https://github.com/qwertyulv/monero-pay/blob/main/monero-pay/monero-pay/ARCHITECTURE.md
+- [Setup Guide](README_SETUP.md)
+- [Session API Authentication](README_SESSION_API.md)
+- [P2P Architecture and Limitations](README_P2P.md)
+- [Pricing Modes](README_PRICING_MODES.md)
+- [Architecture Overview](ARCHITECTURE.md)
 
 ## Development
 
