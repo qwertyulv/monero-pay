@@ -1,6 +1,6 @@
 # Monero Pay
 
-#**No censorship No KYC Self-hosted information**
+**No censorship No KYC Self-hosted information**
 
 An open-source, self-hosted Monero payment gateway written in Go.
 
