@@ -37,10 +37,14 @@ jobs:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
         run: |
-          # Navigate into the nested directory where the actual code and go.mod are located
-          cd monero-pay/monero-pay/monero-pay
+          # 1. Automatically find the folder containing .go files (自动全盘扫描寻找代码文件夹)
+          GO_DIR=$(dirname $(find . -name "*.go" | head -n 1))
+          echo "Found Go code in: $GO_DIR"
           
-          # Build the binary and save it to the root workspace directory so the next step can find it
+          # 2. Automatically enter that folder (自动进入该文件夹)
+          cd $GO_DIR
+          
+          # 3. Build and output to the main workspace (编译并输出到大门口)
           go build -o $GITHUB_WORKSPACE/${{ matrix.name }} . 
 
       - name: Upload Release Asset
