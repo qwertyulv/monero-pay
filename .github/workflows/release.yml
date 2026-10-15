@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+# Grant write permissions so the bot can upload files to the Release page
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build binaries
@@ -37,14 +41,14 @@ jobs:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
         run: |
-          # 1. Automatically find the folder containing .go files (自动全盘扫描寻找代码文件夹)
+          # 1. Automatically find the folder containing .go files
           GO_DIR=$(dirname $(find . -name "*.go" | head -n 1))
           echo "Found Go code in: $GO_DIR"
           
-          # 2. Automatically enter that folder (自动进入该文件夹)
+          # 2. Automatically enter that folder
           cd $GO_DIR
           
-          # 3. Build and output to the main workspace (编译并输出到大门口)
+          # 3. Build and output to the main workspace
           go build -o $GITHUB_WORKSPACE/${{ matrix.name }} . 
 
       - name: Upload Release Asset
