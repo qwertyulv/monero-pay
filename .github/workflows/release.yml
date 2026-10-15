@@ -1,6 +1,5 @@
 name: Build and Release
 
-# Trigger the workflow only when a tag starting with "v" is pushed
 on:
   push:
     tags:
@@ -11,7 +10,6 @@ jobs:
     name: Build binaries
     runs-on: ubuntu-latest
     
-    # Matrix strategy to build for Linux, Windows, and macOS
     strategy:
       matrix:
         include:
@@ -32,15 +30,18 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21' # Specify the Go version used for building
+          go-version: '1.21' 
 
       - name: Build Binary
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
         run: |
-          # Changed from ./main.go to . to compile the current module
-          go build -o ${{ matrix.name }} . 
+          # Navigate into the nested directory where the actual code and go.mod are located
+          cd monero-pay/monero-pay/monero-pay
+          
+          # Build the binary and save it to the root workspace directory so the next step can find it
+          go build -o $GITHUB_WORKSPACE/${{ matrix.name }} . 
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
