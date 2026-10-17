@@ -6,6 +6,9 @@ An open-source, self-hosted Monero payment gateway written in Go.
 
 Monero Pay provides invoice management, hosted checkout pages, payment tracking, merchant API endpoints, webhook delivery, and a peer-to-peer discovery layer.
 
+<img width="49%" src="https://github.com/user-attachments/assets/c071c54d-08d6-4d61-b8a5-8f025f2699ef" /> <img width="49%" src="https://github.com/user-attachments/assets/4288ceb9-2e45-4fdb-ba23-c6b289f52748" />
+
+
 ## Features
 
 - **Hosted checkout:** Payment pages with Monero payment URIs and QR codes.
