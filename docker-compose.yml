@@ -1,0 +1,52 @@
+services:
+  monerod:
+    image: sethsimmons/simple_monerod:latest
+    restart: unless-stopped
+    volumes:
+      - monero-node-data:/home/monero/.bitmonero
+    ports:
+      - "18081:18081"
+    command:
+      - "--rpc-bind-ip=0.0.0.0"
+      - "--rpc-bind-port=18081"
+      - "--confirm-external-bind"
+      - "--non-interactive"
+      - "--restricted-rpc"
+
+  monero-wallet-rpc:
+    image: sethsimmons/simple_monerod:latest
+    restart: unless-stopped
+    depends_on:
+      - monerod
+    volumes:
+      - wallet-data:/wallet
+    ports:
+      - "18083:18083"
+    entrypoint: monero-wallet-rpc
+    command:
+      - "--rpc-bind-ip=0.0.0.0"
+      - "--rpc-bind-port=18083"
+      - "--confirm-external-bind"
+      - "--daemon-host=monerod"
+      - "--daemon-port=18081"
+      - "--wallet-dir=/wallet"
+      - "--disable-rpc-login"
+
+  monero-pay:
+    image: morehappy/monero-pay:latest   
+    restart: unless-stopped
+    depends_on:
+      - monero-wallet-rpc
+    ports:
+      - "8080:8080"
+    volumes:
+      - monero-pay-data:/data
+    environment:
+      - MONERO_WALLET_RPC_URL=http://monero-wallet-rpc:18083/json_rpc
+    stdin_open: true
+    tty: true
+
+volumes:
+  monero-node-data:
+  wallet-data:
+  monero-pay-data:
