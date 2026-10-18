@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.vscode
+*.md
+LICENSE
+src/
+data/
+config.json
+*.key
+*.exe
